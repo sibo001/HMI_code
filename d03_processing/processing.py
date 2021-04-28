@@ -32,7 +32,7 @@ READ AND EXTRACT FEATURES FROM TEST DATA
 """
 
 # list of the subject numbers in the data files
-filename_list = ['3']
+filename_list = ['4']
 
 # initialise dictionaries
 extracted_features = {}
@@ -77,7 +77,7 @@ for filename in filename_list:
     for trial_num in trial_num_list:
         
         # compile different datafiles into a single dataset (imu, emg, mmg)
-        dataset_combined_signals, emg_MVC,position_num = read_file(filename,trial_num)
+        dataset_combined_signals, emg_MVC,mmg_MVC, position_num, coordinate = read_file(filename,trial_num, 'Yingshu_22_04') 
  #%%         
         ## Resample Dataset
        # dataset_RS = resample(dataset_combined_signals)  

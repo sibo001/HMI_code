@@ -1,0 +1,2 @@
+#include <winuser.rh>
+1 RT_MANIFEST "Control_Kieran_quanser_imu.auto.manifest"

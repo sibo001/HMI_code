@@ -36,7 +36,7 @@ def convertfile(sub_num,trialname):
             np.savetxt((csvdir +"/Trial_"+trialname+".csv"),data[i],delimiter=',')
     return
 # In[]
-def read_file(sub_num, trial_num):
+def read_file(sub_num, trial_num, name_date):
     
     """
     1. Read in the files using the subject number and the trial number
@@ -59,18 +59,26 @@ def read_file(sub_num, trial_num):
     # Define path to the data
     #path= "D:/Yang sibo/HRI software/HRI software/reaching and placing task/src/d01_data/01_raw/sub_"+sub_num
     path = "F:/HRI software/reaching and placing task/src/d01_data/01_raw/sub_"+sub_num
-
-    # Read in the different files
-    # (the stretch signal and the imu and combined)
-    # emg_MVC (MVC = Maximum Voluntary Contraction): this file is used to normalise the muscle activity between subjects
+    #path = "C:/Users/sibo0/OneDrive - Nanyang Technological University (1)/HRI software/reaching and placing task/src/d01_data/01_raw/sub_"+sub_num
     
-    imu = pd.read_csv(path+"/patient_Yingshu_22_04_exp1/imu/Trial_"+trial_num+".csv",header=None)
-    emg = pd.read_csv(path+'/patient_Yingshu_22_04_exp1/emg/Trial_'+trial_num+'.csv', header=None)#'/emg/Trial4_emg.csv'
-    mmg = pd.read_csv(path+'/patient_Yingshu_22_04_exp1/mmg/Trial_'+trial_num+'.csv', header=None)
-    segment_RP = pd.read_csv(path+'/patient_Yingshu_22_04_exp1/switch/Trial_'+trial_num+'.csv', header=None)
-    #amplitude = pd.read_csv(path+'/Trajectory.csv', header=None)
-    emg_MVC = pd.read_csv(path+'/patient_Yingshu_22_04_MVC/emg/MVC.csv', header=None)
-    position_num = pd.read_csv(path+'/position_num.csv', header=None)
+    
+    # Read in the different files
+    
+    # (the mmg signal and the imu and combined): imu, emg and mmg signal
+    # emg_MVC (MVC = Maximum Voluntary Contraction): this file is used to normalise the muscle activity between subjects
+    # segment_RP :
+        #           0: placing task
+        #           1: reaching task and taking back
+    
+    imu = pd.read_csv(path+"/patient_" + name_date + "_exp1/imu/Trial_"+trial_num +".csv",header=None)
+    emg = pd.read_csv(path+'/patient_' + name_date + '_exp1/emg/Trial_'+trial_num+'.csv', header=None)
+    mmg = pd.read_csv(path+'/patient_' + name_date + '_exp1/mmg/Trial_'+trial_num+'.csv', header=None)
+    segment_RP = pd.read_csv(path+'/patient_' + name_date + '_exp1/switch/Trial_'+trial_num+'.csv', header=None)
+    emg_MVC = pd.read_csv(path+'/patient_'+ name_date + '_MVC/emg/emg_MVC.csv', header=None)
+    mmg_MVC = pd.read_csv(path+'/patient_'+ name_date + '_MVC/mmg/mmg_MVC.csv', header=None)
+    position_num = pd.read_csv(path+'/position_num' + trial_num + '.csv', header=None)
+    coordinate = pd.read_csv(path+'/coordinates' + trial_num + '.csv', header=None)
+    
     # the position_num file column: column 0 = position command to person 
     # the amplitude file column: 0 simulation time of the trial, column 1 = amplitude commanded to person
     
@@ -87,25 +95,35 @@ def read_file(sub_num, trial_num):
     #         amplitudes.append(amplitude2.iloc[i+1,1])
     
     # label columns of emg dataframe
-    emg = emg[(emg.T!=0).any()]
-    emg = emg.T
+    # emg = emg[(emg!=0).any()]
+    # emg = emg.dropna()
     emg.columns = ['Time','Biceps','Triceps','Deltoid','Pecs']
     
     # label columns of emg_MVC dataframe
-    emg_MVC = emg_MVC[(emg_MVC.T!=0).any()]
-    emg_MVC = emg_MVC.T 
+    # emg_MVC = emg_MVC[(emg_MVC.T!=0).any()]
+    # emg_MVC = emg_MVC.T 
+    # emg_MVC = emg_MVC.dropna()
     emg_MVC.columns = ['Time','Biceps','Triceps','Deltoid','Pecs']
 
     # label columns of imu dataframe
-    imu = imu.T
+    # imu = imu.T  #Matalb load file
+    imu = imu.dropna()
     imu.columns = ['time','elbowflexion','elbowzaxis','shoulderelevation','shoulderazimuth','shoulderzaxis',
-                   'trunkflexion','trunklateral','trunkrotation']
+                   'trunkflexion','trunklateral','trunkrotation', 'QUATw_trunk', 'QUATx_trunk', 'QUATy_trunk', 'QUATz_trunk', 'QUATw_shoulder', 
+                   'QUATx_shoulder', 'QUATy_shoulder', 'QUATz_shoulder', 'QUATw_forearm', 'QUATx_forearm', 'QUATy_forearm', 'QUATz_forearm']
     # label columns of mmg dataframe
-    mmg = mmg.T
+    # mmg = mmg.T
+    # mmg = mmg.dropna()
     mmg.columns=['Time','mmg']
+    
+    # label columns of 
+    # mmg_MVC = mmg.dropna()
+    mmg_MVC.columns=['Time','mmg_MVC']
     # label columns of switch dataframe. The switch is used for segmenting the reaching and placing task
-    segment_RP = segment_RP.T
+    # segment_RP = segment_RP.T
     segment_RP.columns=['Time','segment_RP']
+    
+    
     # combine the dataframes into one 
     combined_dataset = imu
     combined_dataset['segment_RP'] =segment_RP['segment_RP']
@@ -115,7 +133,7 @@ def read_file(sub_num, trial_num):
     combined_dataset['Deltoid'] = emg['Deltoid']
     combined_dataset['Pecs'] = emg['Pecs']
     
-    return combined_dataset, emg_MVC, position_num
+    return combined_dataset, emg_MVC,mmg_MVC, position_num, coordinate
 # In[]
 def resample(dataset):
     
@@ -157,7 +175,7 @@ def resample(dataset):
     return dataset
     
 
-def filteremg(time, emg, low_pass=20, sfreq=166.7, high_band=10, low_band=49, graphs=1):
+def filteremg(time, emg, low_pass=20, sfreq=166.7, high_band=5, low_band=49, graphs=1):
     #low_pass=30, sfreq=166.7, high_band=10, low_band=49, graphs=1
     import scipy as sp
     import matplotlib.pyplot as plt
@@ -198,13 +216,13 @@ def filteremg(time, emg, low_pass=20, sfreq=166.7, high_band=10, low_band=49, gr
         plt.plot(time[0:range_slt],emg[0:range_slt])
         
         plt.subplot(1,2,2)
-        plt.plot(time[0:range_slt],  emg_envelope[0:range_slt])
+        plt.plot(time[0:range_slt],emg_envelope[0:range_slt])
         
         plt.show()
 
     return emg_envelope
 
-def filtermmg(time, mmg, sfreq=166.7, high_band=10, low_band=50):
+def filtermmg(time, mmg, sfreq=166.7, high_band=20, low_band=50, graphs=1):
     import scipy as sp
     import matplotlib.pyplot as plt
     
@@ -219,7 +237,7 @@ def filtermmg(time, mmg, sfreq=166.7, high_band=10, low_band=50):
     sfreq: sampling frequency
     """
     
-    # normalise cut-off to sfreq
+    # normalise cut-off to sfreq 
     high_band = high_band/(sfreq/2)
     low_band = low_band/(sfreq/2)
     
@@ -236,6 +254,16 @@ def filtermmg(time, mmg, sfreq=166.7, high_band=10, low_band=50):
     # low_pass = low_pass/sfreq
     # b2, a2 = sp.signal.butter(4, low_pass, btype='lowpass')
     # emg_envelope = sp.signal.filtfilt(b2, a2, emg_rectified)
+    if graphs == 1:
+        
+        range_slt = 400
+        plt.subplot(1,2,1)
+        plt.plot(time[0:range_slt],mmg[0:range_slt])
+        
+        plt.subplot(1,2,2)
+        plt.plot(time[0:range_slt],mmg_filtered[0:range_slt])
+        
+        plt.show()    
     
     return mmg_filtered
 
@@ -283,6 +311,7 @@ def filter_derivate(dataset):
     #import matplotlib.pyplot as plt
     
     # define new dataset based on the input dataset
+    dataset = dataset[:-1]
     new_dataset = dataset.copy()
     ## IMU filtering
     
@@ -1726,12 +1755,12 @@ def baseline_classification_models(X_train, y_train, mean_val=100, kfolds=0):
     return cv_results, cv_res
 
 
-class RNN():
-    import numpy as np
-    import tensorflow as tf
-    from tensorflow import keras
-    from tensorflow.keras import layers 
-    def 
+# class RNN():
+#     import numpy as np
+#     import tensorflow as tf
+#     from tensorflow import keras
+#     from tensorflow.keras import layers 
+#     def 
     
 
 
