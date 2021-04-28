@@ -247,8 +247,8 @@ def filtermmg(time, mmg, sfreq=166.7, high_band=20, low_band=50, graphs=1):
     # apply forward backward filtering filtfilt
     mmg_filtered = sp.signal.filtfilt(b1, a1, mmg)    
     
-    # # rectify
-    # mmg_rectified = abs(mmg_filtered)
+    # rectify
+    mmg_rectified = abs(mmg_filtered)
     
     # # apply low pass filter to rectified signal
     # low_pass = low_pass/sfreq
@@ -261,7 +261,7 @@ def filtermmg(time, mmg, sfreq=166.7, high_band=20, low_band=50, graphs=1):
         plt.plot(time[0:range_slt],mmg[0:range_slt])
         
         plt.subplot(1,2,2)
-        plt.plot(time[0:range_slt],mmg_filtered[0:range_slt])
+        plt.plot(time[0:range_slt],mmg_rectified[0:range_slt])
         
         plt.show()    
     
@@ -409,37 +409,42 @@ def segment_data(dataset, position_num):
     import pandas as pd
     
     """
-    Segment the dataframe based on the position number (Only placing tasks included)
+    Segment the dataframe based on the position number 
+    segment_RP=0 (Placing)
+    segment_RP=1 (Reaching)
     
     """
     dataset_Reach = pd.DataFrame()
+    dataset_Place = pd.DataFrame()
+    
+    dataset_Place = dataset.loc[dataset['segment_RP'] == 0]  # Acquire all placing datas in one dataset
     dataset_Reach = dataset.loc[dataset['segment_RP'] == 1]  # Acquire all reaching datas in one dataset
 
     i=0
     ind_pos = 0  # The initial index of position_number  
-    list_pos_num = [1,2,3,4,5,6] #The list of position number
+    list_pos_num = [1,2,3,4,5,6,7,8,9,10,11,12] #The list of position number
     segments={}
     subsegments={}
     dict_pos_num = {}
     i_discont = 0
-    total_row_pl = np.zeros((len(dataset_Reach['time']),1)) #total rows during placing time
+    total_row_pl = np.zeros((len(dataset_Place['time']),1)) #total rows during placing time
     windows=pd.DataFrame()
     window_seg = {}    
-    cutoff_Index = 25    # the cutoff time for the training data selection
+    cutoff_Index = 25    # the cutoff time for the training data selection (1 step => 0.006s)
     # Save all the rows with the same 'position_num' into one dataframe
     
-    for i in range(len(dataset_Reach['time'])):
-        if (i!=0) and (dataset_Reach.index[i-1] != dataset_Reach.index[i]-1) and (len(subsegments[ind_pos])>20) and (ind_pos < len(position_num)-1): #len(): get the list number; .iloc() can get the index name
+    for i in range(len(dataset_Place['time'])):
+        if (i!=0) and (dataset_Place.index[i-1] != dataset_Place.index[i]-1) and (len(subsegments[ind_pos])>40) and (ind_pos < len(position_num)-1): #len(): get the list number; .iloc() can get the index name
             ind_pos = ind_pos + 1
             i_discont = i
-        subsegments[ind_pos] = dataset_Reach.iloc[i_discont:i+1]
+        subsegments[ind_pos] = dataset_Place.iloc[i_discont:i+1]         # segment the dataset regarding the position number
         total_row_pl[i,0] = position_num.iloc[ind_pos,0]
         
         dict_pos_num[ind_pos] = np.zeros((len(subsegments[ind_pos]),1))
         dict_pos_num[ind_pos][:] = position_num.iloc[ind_pos,0]
         subsegments[ind_pos].insert(1, 'position_num', dict_pos_num[ind_pos])
 
-    dataset_Reach.insert(1, 'position_num', total_row_pl)
+    dataset_Place.insert(1, 'position_num', total_row_pl)
     
     # Drop other colums and only record the first 20 rows of data (waiting for training)
 
