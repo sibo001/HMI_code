@@ -1,2 +1,0 @@
-segmented data: 0---press/place the cup
-	           1---loose/hold the cup
