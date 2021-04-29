@@ -89,7 +89,7 @@ for filename in filename_list:
         dataset_norm = normalise_MVC(emg_MVC, dataset_filtered)
         
         ##Segment the dataframe based on the position number (Only placing tasks included)
-        dataset_Reach, windows, window_seg, segments, subsegments = segment_data(dataset_norm, position_num)
+        dataset_Place, dataset_Reach, windows, window_seg, segments, subsegments = segment_data(dataset_norm, position_num)
         
         ## Split the dataset into complete trajectories and then split into segments of different time windows
         #traj_segments,df_trajectories[i], df_trajectories_info = segment_data(dataset_norm,angle_cutoff)

@@ -420,7 +420,7 @@ def segment_data(dataset, position_num):
     dataset_Place = dataset.loc[dataset['segment_RP'] == 0]  # Acquire all placing datas in one dataset
     dataset_Reach = dataset.loc[dataset['segment_RP'] == 1]  # Acquire all reaching datas in one dataset
 
-    i=0
+    start_time = 60   # (sec) the rough starting time of experiment
     ind_pos = 0  # The initial index of position_number  
     list_pos_num = [1,2,3,4,5,6,7,8,9,10,11,12] #The list of position number
     segments={}
@@ -433,7 +433,8 @@ def segment_data(dataset, position_num):
     cutoff_Index = 25    # the cutoff time for the training data selection (1 step => 0.006s)
     # Save all the rows with the same 'position_num' into one dataframe
     
-    for i in range(len(dataset_Place['time'])):
+    # for t in 
+    for i in range(dataset_copy.loc[dataset_copy['time'] == start_time].index[0], len(dataset_copy['time'])+1):        # eliminate the first 60 sec dataset.
         if (i!=0) and (dataset_Place.index[i-1] != dataset_Place.index[i]-1) and (len(subsegments[ind_pos])>40) and (ind_pos < len(position_num)-1): #len(): get the list number; .iloc() can get the index name
             ind_pos = ind_pos + 1
             i_discont = i
@@ -455,7 +456,7 @@ def segment_data(dataset, position_num):
         window_seg[j]= windows.loc[windows['position_num'] == j+1]
         
     
-    return dataset_Reach, windows, window_seg, segments, subsegments
+    return dataset_Place, dataset_Reach, windows, window_seg, segments, subsegments
 
 # def segment_data(dataset,amplitude):
     
