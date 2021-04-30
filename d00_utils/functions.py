@@ -25,16 +25,16 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.pipeline import make_pipeline
 # In[] CONVERT .MAT FILE TO .CSV FILE
-def convertfile(sub_num,trialname):
-    import scipy.io
-    rootdir ="C:/Users/sibo0/OneDrive - Nanyang Technological University (1)/HRI software/reaching and placing task/src/d01_data/01_raw/sub_"+ sub_num
-    csvdir="C:/Users/sibo0/OneDrive - Nanyang Technological University (1)/HRI software/reaching and placing task/src/d01_data/01_raw/sub_"+ sub_num +"/patient_Haojie_17_02_MVC/"
-    data = scipy.io.loadmat(rootdir+"/time/Trial_"+trialname+".mat")
+# def convertfile(sub_num,trialname):
+#     import scipy.io
+#     rootdir ="C:/Users/sibo0/OneDrive - Nanyang Technological University (1)/HRI software/reaching and placing task/src/d01_data/01_raw/sub_"+ sub_num
+#     csvdir="C:/Users/sibo0/OneDrive - Nanyang Technological University (1)/HRI software/reaching and placing task/src/d01_data/01_raw/sub_"+ sub_num +"/patient_Haojie_17_02_MVC/"
+#     data = scipy.io.loadmat(rootdir+"/time/Trial_"+trialname+".mat")
 
-    for i in data:
-        if '__' not in i and 'readme' not in i:
-            np.savetxt((csvdir +"/Trial_"+trialname+".csv"),data[i],delimiter=',')
-    return
+#     for i in data:
+#         if '__' not in i and 'readme' not in i:
+#             np.savetxt((csvdir +"/Trial_"+trialname+".csv"),data[i],delimiter=',')
+#     return
 # In[]
 def read_file(sub_num, trial_num, name_date):
     
@@ -426,37 +426,53 @@ def segment_data(dataset, position_num):
     segments={}
     subsegments={}
     dict_pos_num = {}
-    i_discont = 0
+    i_discount = 0
     total_row_pl = np.zeros((len(dataset_Place['time']),1)) #total rows during placing time
     windows=pd.DataFrame()
     window_seg = {}    
     cutoff_Index = 25    # the cutoff time for the training data selection (1 step => 0.006s)
     # Save all the rows with the same 'position_num' into one dataframe
     
-    # for t in 
-    for i in range(dataset_copy.loc[dataset_copy['time'] == start_time].index[0], len(dataset_copy['time'])+1):        # eliminate the first 60 sec dataset.
-        if (i!=0) and (dataset_Place.index[i-1] != dataset_Place.index[i]-1) and (len(subsegments[ind_pos])>40) and (ind_pos < len(position_num)-1): #len(): get the list number; .iloc() can get the index name
-            ind_pos = ind_pos + 1
-            i_discont = i
-        subsegments[ind_pos] = dataset_Place.iloc[i_discont:i+1]         # segment the dataset regarding the position number
-        total_row_pl[i,0] = position_num.iloc[ind_pos,0]
-        
-        dict_pos_num[ind_pos] = np.zeros((len(subsegments[ind_pos]),1))
-        dict_pos_num[ind_pos][:] = position_num.iloc[ind_pos,0]
-        subsegments[ind_pos].insert(1, 'position_num', dict_pos_num[ind_pos])
-
-    dataset_Place.insert(1, 'position_num', total_row_pl)
     
-    # Drop other colums and only record the first 20 rows of data (waiting for training)
+    list_df_place = [d for _, d in dataset_Place.groupby(dataset_Place.index - np.arange(len(dataset_Place)))] # split the dataset_place based on consecutive index
 
-    for count in range(len(subsegments)):
-        windows =windows.append(subsegments[count].drop(subsegments[count].index[cutoff_Index:], axis=0))
+    list_df_reach = [d for _, d in dataset_Reach.groupby(dataset_Reach.index - np.arange(len(dataset_Reach)))]
+    
+    filt_list_place = []
+    for i in range(len(list_df_place)):
+        if len(list_df_place[i]) >=50:
+            filt_list_place.append(list_df_place[i])
+    
+    filt_list_reach = []
+    for i in range(len(list_df_reach)):
+        if len(list_df_reach[i]) >=50:
+            filt_list_reach.append(list_df_reach[i])
         
-    for j in range(len(list_pos_num)):
-        window_seg[j]= windows.loc[windows['position_num'] == j+1]
+        
+    # for i in range(len(dataset['time'])):        # dataset.loc[dataset['time'] == start_time].index[0],# eliminate the first 60 sec dataset.
+    #     if (i!=0) and (dataset_Place.index[i-1] != dataset_Place.index[i]-1) and (len(subsegments[ind_pos])>40) and (ind_pos < len(position_num)-1): #len(): get the list number; .iloc() can get the index name
+    #         ind_pos = ind_pos + 1
+    #         i_discont = i
+    #     subsegments[ind_pos] = dataset_Place.iloc[i_discont:i+1]         # segment the dataset regarding the position number
+    #     total_row_pl[i,0] = position_num.iloc[ind_pos,0]
+        
+    #     dict_pos_num[ind_pos] = np.zeros((len(subsegments[ind_pos]),1))
+    #     dict_pos_num[ind_pos][:] = position_num.iloc[ind_pos,0]
+    #     subsegments[ind_pos].insert(1, 'position_num', dict_pos_num[ind_pos])
+
+    # dataset_Place.insert(1, 'position_num', total_row_pl)
+    
+    # # Drop other colums and only record the first 20 rows of data (waiting for training)
+
+    # for count in range(len(subsegments)):
+    #     windows =windows.append(subsegments[count].drop(subsegments[count].index[cutoff_Index:], axis=0))
+        
+    # for j in range(len(list_pos_num)):
+    #     window_seg[j]= windows.loc[windows['position_num'] == j+1]
         
     
-    return dataset_Place, dataset_Reach, windows, window_seg, segments, subsegments
+    # return dataset_Place, dataset_Reach, windows, window_seg, segments, subsegments
+    return
 
 # def segment_data(dataset,amplitude):
     

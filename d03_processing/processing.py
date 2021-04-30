@@ -20,11 +20,11 @@ from scipy import signal
 
 import sys
 import os
-#%% CONVERT .MAT FILE TO .CSV FILE
-subnum='2'
-trialname_list='1','2','3','4','5','6'
-for trialname in trialname_list:
-    convertfile(subnum,trialname)
+# #%% CONVERT .MAT FILE TO .CSV FILE
+# subnum='2'
+# trialname_list='1','2','3','4','5','6'
+# for trialname in trialname_list:
+#     convertfile(subnum,trialname)
 #%% READ AND EXTRACT FEATURES FROM TEST DATA
 """
 READ AND EXTRACT FEATURES FROM TEST DATA
